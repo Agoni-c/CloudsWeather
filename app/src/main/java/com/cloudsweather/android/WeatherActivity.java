@@ -17,9 +17,9 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.cloudsweather.android.gson.Forecast;
-import com.cloudsweather.android.gson.Lifestyle;
 import com.cloudsweather.android.gson.Weather;
 import com.cloudsweather.android.util.HttpUtil;
 import com.cloudsweather.android.util.Utility;
@@ -31,6 +31,9 @@ import okhttp3.Callback;
 import okhttp3.Response;
 @SuppressLint("NewApi")
 public class WeatherActivity extends AppCompatActivity {
+
+    public SwipeRefreshLayout swipeRefresh;
+    private String mWeatherId;
 
     private DrawerLayout mDrawLayout;
     private ScrollView weatherLayout;
@@ -70,13 +73,14 @@ public class WeatherActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         mDrawLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayShowTitleEnabled(false);
         if (actionBar != null){
             actionBar.setDisplayHomeAsUpEnabled(true);//让导航按钮显示出来
             actionBar.setHomeAsUpIndicator(R.drawable.ic_menu);//设置导航按钮图标
         }
         //初始化各控件
         weatherLayout = (ScrollView) findViewById(R.id.weather_layout);
-        title_county = (TextView)findViewById(R.id.title_county) ;
+        title_county = (TextView)findViewById(R.id.toolbar_title) ;
         title_update_time = (TextView) findViewById(R.id.title_update_time);
         temperatureText = (TextView) findViewById(R.id.temperature_text);
         weatherInfoText = (TextView) findViewById(R.id.weather_info_text);
@@ -89,24 +93,35 @@ public class WeatherActivity extends AppCompatActivity {
         comfortText = (TextView) findViewById(R.id.comfort_txt);
         sportText = (TextView) findViewById(R.id.sport_txt);
         carWashText = (TextView) findViewById(R.id.carWash_txt);
-        SharedPreferences prefs = getSharedPreferences("data",MODE_PRIVATE);
-        String weatherString = prefs.getString("weather",null);
-        if (weatherString != null){
-            //有缓存时直接解析天气数据
-            try {
-                Weather weather = Utility.handleWeatherResponse(weatherString);
-                showWeatherInfo(weather);
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-        }else {
+
+        swipeRefresh = findViewById(R.id.refreshLayout);
+        swipeRefresh.setColorSchemeResources(R.color.colorPrimary);
+
+
+//        SharedPreferences prefs = getSharedPreferences("data",MODE_PRIVATE);
+//        String weatherString = prefs.getString("weather",null);
+//        if (weatherString != null){
+//            //有缓存时直接解析天气数据
+//            try {
+//                Weather weather = Utility.handleWeatherResponse(weatherString);
+//                showWeatherInfo(weather);
+//            }catch (Exception e){
+//                e.printStackTrace();
+//            }
+//        }else {
             //无缓冲时去服务器查询天气
-            String weatherId = getIntent().getStringExtra("weather_id");
-            weatherLayout.setVisibility(View.INVISIBLE);
-            requestWeather(weatherId);
-        }
+            //String weatherId = getIntent().getStringExtra("weather_id");
+        mWeatherId = getIntent().getStringExtra("weather_id");
+        weatherLayout.setVisibility(View.INVISIBLE);
+        requestWeather(mWeatherId);
 
-
+        swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                requestWeather(mWeatherId);
+            }
+        });
+//        }
     }
     public boolean onCreateOptionsMenu(Menu menu){
         getMenuInflater().inflate(R.menu.toolbar,menu);
@@ -131,8 +146,11 @@ public class WeatherActivity extends AppCompatActivity {
      * 根据天气id请求城市天气信息
      */
     public void requestWeather(final String weatherId){
-        String weatherUrl1 = "http://guolin.tech/api/weather?cityid="+weatherId+"&key=d2e05f5d675e4be4a1b68951c44e878c";
-        HttpUtil.sendOkHttpRequest(weatherUrl1, new Callback() {
+        String weatherUrl = "http://guolin.tech/api/weather?cityid="+weatherId+"&key=d2e05f5d675e4be4a1b68951c44e878c";
+        String weatherUrl2 = "https://api.heweather.net/s6/weather/lifestyle?location="+weatherId+"&key=b3f12f4deb964e7289fa38050148e5b5";
+        String weatherUrl3 = "https://api.heweather.net/s6/weather/hourly?location="+weatherId+"&key=b3f12f4deb964e7289fa38050148e5b5";
+
+        HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 e.printStackTrace();
@@ -140,6 +158,7 @@ public class WeatherActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         Toast.makeText(WeatherActivity.this,"获取天气失败",Toast.LENGTH_SHORT).show();
+                        swipeRefresh.setRefreshing(false);
                     }
                 });
             }
@@ -154,14 +173,18 @@ public class WeatherActivity extends AppCompatActivity {
                             SharedPreferences.Editor editor = getSharedPreferences("data",MODE_PRIVATE).edit();
                             editor.putString("weather",responseText);
                             editor.apply();
+                            mWeatherId = weather.basic.weatherId;
                             showWeatherInfo(weather);
                         }else {
+                            Toast.makeText(WeatherActivity.this,responseText,Toast.LENGTH_SHORT).show();
                             Toast.makeText(WeatherActivity.this,"获取天气信息失败",Toast.LENGTH_SHORT).show();
                         }
+                        swipeRefresh.setRefreshing(false);
                     }
                 });
             }
         });
+
 
     }
 
@@ -179,7 +202,6 @@ public class WeatherActivity extends AppCompatActivity {
         temperatureText.setText(temperature);
         weatherInfoText.setText(weatherInfo);
         weatherWinfindText.setText(wind);
-
         if(weather.aqi != null){
             qltyText.setText(weather.aqi.city.qlty);
             aqiText.setText(weather.aqi.city.aqi);
@@ -204,19 +226,28 @@ public class WeatherActivity extends AppCompatActivity {
             minText.setText(forecast.temperature.min);
             forecastLayout.addView(view);
         }
-        lifestyleLayout.removeAllViews();
-        for(Lifestyle lifestyle:weather.lifestyleList){
-            View view = LayoutInflater.from(this).inflate(R.layout.lifestyle,lifestyleLayout,false);
-            TextView type = (TextView) findViewById(R.id.lifestyle_type);
-            TextView brf = (TextView) findViewById(R.id.lifestyle_brf);
-            TextView text = (TextView) findViewById(R.id.lifestyle_text);
-            type.setText(lifestyle.type);
-            brf.setText(lifestyle.brf);
-            text.setText(lifestyle.text);
-            lifestyleLayout.addView(view);
-        }
-
+//        forecastHourlyLayout.removeAllViews();
+//        for(Forecast_hourly forecast_hourly:weather.forecast_hourlyList){
+//            View view = LayoutInflater.from(this).inflate(R.layout.forecast_hourly_item,forecastHourlyLayout,false);
+//            TextView hourlyInfoText = (TextView) view.findViewById(R.id.hourlyInfo_text);
+//            TextView hourlyTimeText = (TextView) view.findViewById(R.id.hourlyTime_text);
+//            TextView hourlyTmpText = (TextView) view.findViewById(R.id.hourlyTmp_text);
+//            hourlyInfoText.setText(forecast_hourly.hourlyInfo);
+//            hourlyTimeText.setText(forecast_hourly.time);
+//            hourlyTmpText.setText(forecast_hourly.tmp);
+//            forecastHourlyLayout.addView(view);
+//        }
+//        lifestyleLayout.removeAllViews();
+//        for(Lifestyle lifestyle:weather.lifestyleList){
+//            View view = LayoutInflater.from(this).inflate(R.layout.lifestyle,lifestyleLayout,false);
+//            TextView type = (TextView) findViewById(R.id.lifestyle_type);
+//            TextView brf = (TextView) findViewById(R.id.lifestyle_brf);
+//            TextView text = (TextView) findViewById(R.id.lifestyle_text);
+//            type.setText(lifestyle.type);
+//            brf.setText(lifestyle.brf);
+//            text.setText(lifestyle.text);
+//            lifestyleLayout.addView(view);
+//        }
         weatherLayout.setVisibility(View.VISIBLE);
     }
-
 }
