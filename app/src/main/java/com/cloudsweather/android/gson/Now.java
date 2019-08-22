@@ -11,8 +11,15 @@ public class Now {
 
     @SerializedName("cond_code")
     public String code;
+
     @SerializedName("cond_txt")//天气情况
     public String txt;
+
+    @SerializedName("pres")
+    public String pres;
+
+    @SerializedName("vis")
+    public String vis;
 
     @SerializedName("hum")
     public String humidity;//湿度

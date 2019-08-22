@@ -24,9 +24,4 @@ public class Basic {
     @SerializedName("cid")
     public String weatherId;
 
-    public Update update;
-    public class Update{
-        @SerializedName("loc")
-        public String updateTime;
-    }
 }

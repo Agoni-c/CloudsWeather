@@ -9,8 +9,8 @@
         android:id="@+id/weather_info_image"
         android:src="@drawable/weather_cloudy"
         android:layout_gravity="center"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_width="96dp"
+        android:layout_height="96dp" />
 
     <RelativeLayout
         android:gravity="center"

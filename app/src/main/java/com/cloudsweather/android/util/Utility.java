@@ -82,12 +82,46 @@ public class Utility {
     /**
      *将返回的JSON数据解析成Weather实体类
      */
-    public static Weather handleWeatherResponse(String response){
+
+    public static Weather handleWeatherResponse(String responseText){
         try{
-            JSONObject jsonObject = new JSONObject(response);
-            JSONArray jsonArray = jsonObject.getJSONArray("HeWeather");
+            JSONObject jsonObject = new JSONObject(responseText);
+            JSONArray jsonArray = jsonObject.getJSONArray("HeWeather6");
             String  weatherContent = jsonArray.getJSONObject(0).toString();
             return new Gson().fromJson(weatherContent,Weather.class);
+//            JSONObject jsonObject = new JSONObject(responseText);
+//            HashMap<String,Object> map = new HashMap<>();
+//            String heWeather = jsonObject.getString("HeWeather");
+//            String heWeather6 = jsonObject.getString("HeWeather6");
+//            map.put("HeWeather",heWeather);
+//            map.put("HeWeather6",heWeather6);
+//            Log.d("testt", map.get("HeWeather").toString());
+
+//            JSONObject jsonObject = new JSONObject(responseText);
+//            JSONArray jsonArray = jsonObject.getJSONArray("HeWeather");
+//            String  weatherContent = jsonArray.getJSONObject(0).toString();
+//            return new Gson().fromJson(weatherContent,Weather.class);
+
+//            JSONObject jsonObject = new JSONObject(responseText);
+//            JSONArray jsonArray1 = jsonObject.getJSONArray("HeWeather");
+//            JSONArray jsonArray2 = jsonObject.getJSONArray("HeWeather6");
+//            String  weatherContent1 = jsonArray1.getJSONObject(0).toString();
+//            String  weatherContent2 = jsonArray2.getJSONObject(0).toString();
+//            String weatherContent = weatherContent1+weatherContent2;
+//            return new Gson().fromJson(weatherContent,Weather.class);
+
+//            JSONArray jsonArray = new JSONArray(responseText);
+//            JSONObject jsonObject1 = jsonArray.getJSONObject(0);
+//            Log.e("weatherInform", jsonObject1.toString ());
+//            JSONObject jsonObject2 = jsonArray.getJSONObject(1);
+//            JSONObject jsonObject3 = jsonArray.getJSONObject(2);
+//            JSONArray jsonArray1 = jsonObject1.getJSONArray("HeWeather");
+//            String weatherContent1 = jsonArray1.getJSONObject(0).toString();
+//            String weatherContent2 = jsonObject2.getString("hourly");
+//            String weatherContent3 = jsonObject3.getString("lifestyle");
+//            String weatherContent = weatherContent1+weatherContent2+weatherContent3;
+//            return new Gson().fromJson(weatherContent,Weather.class);
+
         }catch (Exception e){
             e.printStackTrace();
         }

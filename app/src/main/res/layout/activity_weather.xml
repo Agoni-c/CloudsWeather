@@ -7,9 +7,13 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/background">
+        android:layout_height="match_parent">
 
+        <ImageView
+            android:id="@+id/background_img"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"/>
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
@@ -35,7 +39,6 @@
             android:layout_height="wrap_content">
 
 
-
         <ScrollView
             android:layout_below="@+id/toolbar"
             android:id="@+id/weather_layout"
@@ -53,8 +56,7 @@
                 <include layout="@layout/now"/>
                 <include layout="@layout/forecast_hourly"/>
                 <include layout="@layout/forecast"/>
-                <include layout="@layout/api"/>
-                <include layout="@layout/suggestion"/>
+                <include layout="@layout/nowinfo"/>
                 <include layout="@layout/lifestyle"/>
             </LinearLayout>
         </ScrollView>
@@ -63,13 +65,12 @@
 
     </RelativeLayout>
 
-    <TextView
+    <fragment
+        android:id="@+id/choose_area_fragment"
+        android:name="com.cloudsweather.android.ChooseAreaFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:text="@string/app_name"
-        android:textSize="30sp"
-        android:background="#fff"
         />
 
 </androidx.drawerlayout.widget.DrawerLayout>

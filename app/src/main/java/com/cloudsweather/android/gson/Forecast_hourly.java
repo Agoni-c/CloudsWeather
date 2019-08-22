@@ -7,7 +7,7 @@ import com.google.gson.annotations.SerializedName;
  */
 public class Forecast_hourly {
     @SerializedName("cond_code")
-    public int code;
+    public String code;
 
     @SerializedName("cond_txt")
     public String hourlyInfo;
